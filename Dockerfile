@@ -1,15 +1,16 @@
-# Imagem base da nossa image
-# Ja tem o JDK 17 e já vem com o sistema operacional por padão
+FROM openjdk:17-jdk-slim-buster AS build
+# copia todos os arquivos da aplicação para a imagem
+COPY . .
+# Comando para tornar o mvnw em executável
+RUN chmod 700 mvnw
+# mesma função do install, gerar o .jar
+RUN ./mvnw clean package 
+
+# ******* Segunda parte da imagem
 FROM openjdk:17-jdk-slim-buster
-
-# Autor da imagem
-LABEL authors="milena"
-
-# Caminho de execução da aplicação
-WORKDIR /app
-
-# Copia o arquivo app.jar para dentro da pasta build
-COPY target/exercicio_docker-0.0.1-SNAPSHOT.jar app.jar
-
-# Comando de execução da aplicação que esta na pasta /app/buil
-ENTRYPOINT java -jar app.jar
+# Cria uma pasta
+WORKDIR app
+# Buscar o jar criado anteriormente
+COPY --from=build target/*.jar app.jar
+# Executa o jar gerado
+ENTRYPOINT ["java", "-jar", "app.jar"]
